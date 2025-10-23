@@ -35,7 +35,9 @@ export const rideController = {
 
   async getAllRides (req,res) {
     try{
+        // console.log('reached here!')
         const rides = await Ride.find().sort({createdAt: -1}); // getting the newest first
+        // console.log(rides)
         return res.status(200).json({
             success: true,
             message: "Rides fetched successfully",

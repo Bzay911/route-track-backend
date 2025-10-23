@@ -2,6 +2,7 @@ import express from 'express'
 import connectDB from './src/config/db.js'
 import dotenv from 'dotenv'
 import rideRoutes from './src/routes/rideRoutes.js'
+import userRoutes from './src/routes/userRoutes.js'
 
 dotenv.config()
 
@@ -16,6 +17,7 @@ connectDB()
 
 // Routes
 app.use('/api/rides', rideRoutes)
+app.use('/api/auth', userRoutes)
 
 
 app.listen(port, () => {

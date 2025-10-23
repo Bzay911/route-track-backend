@@ -19,12 +19,9 @@ const rideSchema = new mongoose.Schema({
     },
     rideDescription: {
         type: String,
-     },
-     createdAt: {
-        type: Date,
-        default: Date.now
      }
-})
+  
+}, {timestamps: true})
 
 const Ride = mongoose.model('Ride', rideSchema)
 
