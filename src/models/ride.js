@@ -9,6 +9,10 @@ const rideSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    destinationCoords: {
+        type: [Number],
+        required: true
+    },
     rideDate: {
         type: String,
         required: true
@@ -19,6 +23,14 @@ const rideSchema = new mongoose.Schema({
     },
     rideDescription: {
         type: String,
+     },
+     riders:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+     }],
+     createdby:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
      }
   
 }, {timestamps: true})

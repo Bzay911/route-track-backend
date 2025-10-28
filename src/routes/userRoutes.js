@@ -12,5 +12,6 @@ router.post('/handleGoogleSignin', userController.handleGoogleSignin);
 // any route defined after this line will go through the authMiddleware
 router.use(authMiddleware);
 router.get('/validate', userController.validateToken);
+router.post('/addRider', userController.inviteRider)
 
 export default router;
