@@ -3,6 +3,9 @@ import connectDB from './src/config/db.js'
 import dotenv from 'dotenv'
 import rideRoutes from './src/routes/rideRoutes.js'
 import userRoutes from './src/routes/userRoutes.js'
+import { Server } from 'socket.io'
+import {createServer} from 'http';
+import setupRideSockets from './sockets/rideSocket.js'
 
 dotenv.config()
 
@@ -19,7 +22,12 @@ connectDB()
 app.use('/api/rides', rideRoutes)
 app.use('/api/auth', userRoutes)
 
+// Creating HTTP server for Socket.IO
+const httpServer = createServer(app);
+const io = new Server(httpServer);
 
-app.listen(port, () => {
+setupRideSockets(io);
+
+httpServer.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 })

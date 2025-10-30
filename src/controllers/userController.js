@@ -96,7 +96,7 @@ export const userController = {
           return res.status(400).json({ message: "User is already a rider" });
         }
         // if not a rider, add to riders list
-        ride.riders.push(invitee._id);
+        ride.riders.push({user: invitee._id, ready: false});
         await ride.save();
         return res.status(200).json({ message: "Rider invited successfully" });
       }

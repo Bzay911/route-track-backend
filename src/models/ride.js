@@ -24,10 +24,12 @@ const rideSchema = new mongoose.Schema({
     rideDescription: {
         type: String,
      },
-     riders:[{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-     }],
+      riders: [
+        {
+            user: { type: mongoose.Schema.Types.ObjectId, ref: 'User'},
+            ready: { type: Boolean, default: false }
+        }
+    ],
      createdby:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
