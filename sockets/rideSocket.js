@@ -57,6 +57,12 @@ export default function setupRideSockets(io) {
       })
     })
 
+    // on adminstared the ride
+    socket.on("adminStartedTheRide", ({rideId}) => {
+      console.log("Admin started the ride:", rideId);
+      io.to(rideId).emit("rideStartedByAdmin");
+    })
+
     socket.on("disconnect", () => {
       console.log("Client disconnected:", socket.id);
     });
