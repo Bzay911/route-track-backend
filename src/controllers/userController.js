@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
-import { User } from "../models/user.js";
+import  User  from "../models/user.js";
 import { OAuth2Client } from "google-auth-library";
 import Ride from "../models/ride.js";
 
