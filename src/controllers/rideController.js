@@ -1,7 +1,11 @@
 import Ride from "../models/ride.js";
+import User from "../models/user.js";
 
 export const rideController = {
+
+  // creating new ride
   async createRide(req, res) {
+    const userId = req.user._id;
     const {
       rideName,
       destinationCoords,
@@ -10,6 +14,7 @@ export const rideController = {
       selectedTime,
       description,
     } = req.body;
+
     if (!rideName || !destinationCoords || !selectedDate || !selectedTime) {
       return res.status(400).json({
         success: false,
@@ -17,6 +22,19 @@ export const rideController = {
       });
     }
     try {
+      // checking if user already has a ride with same name
+      const existingRide = await Ride.findOne({
+  rideName: { $regex: new RegExp(`^${rideName}$`, 'i') }, // Case insensitive
+  createdby: req.user._id
+});
+
+      if(existingRide){
+        return res.status(400).json({
+          success: false,
+          message: "You already have a ride with this name"
+        })
+      }
+
       const ride = await Ride.create({
         rideName: rideName,
         rideDestination: destinationName,
@@ -27,7 +45,6 @@ export const rideController = {
         createdby: req.user._id,
       });
 
-      const userId = req.user._id;
       // adding the creator as the first rider
       ride.riders.push({ user: userId, ready: false });
       await ride.save();

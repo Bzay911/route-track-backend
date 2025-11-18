@@ -14,6 +14,10 @@ const userSchema = new Schema({
   profilePicture: {
     type: String,
     default: null,
+  },
+  expoPushToken:{
+    type: String,
+    default: null
   }
 },  {timestamps: true});
 

@@ -16,7 +16,7 @@ export const userController = {
   // handle google sign in
   async handleGoogleSignin(req, res) {
     try {
-      const { idToken } = req.body;
+      const { idToken, expoPushToken } = req.body;
       // verifying the token with google
       const ticket = await client.verifyIdToken({
         idToken: idToken,
@@ -29,7 +29,7 @@ export const userController = {
 
       if (!user) {
         console.log("No any user found creating one");
-        user = await User.create({ email, displayName: name });
+        user = await User.create({ email, displayName: name, expoPushToken: expoPushToken });
       }
 
       const appToken = jwt.sign(

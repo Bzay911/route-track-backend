@@ -1,6 +1,8 @@
 import Invite from "../models/invite.js";
 import Ride from "../models/ride.js";
 import User from "../models/user.js";
+import { sendPushNotification } from "../../service/expoPush.js";
+import { NotificationTemplates } from "../../utils/notificationTemplates.js";
 
 export const InviteController = {
   async inviteUser(req, res) {
@@ -48,14 +50,14 @@ export const InviteController = {
       }
 
       // checking if invitee is already a rider in the ride
-      const isAlreadyRider = ride.riders.some(rider => 
-        rider.user.toString() === invitee._id.toString()
+      const isAlreadyRider = ride.riders.some(
+        (rider) => rider.user.toString() === invitee._id.toString()
       );
 
       if (isAlreadyRider) {
         return res.status(400).json({
           success: false,
-          message: "User is already a rider in this ride"
+          message: "User is already a rider in this ride",
         });
       }
 
@@ -66,6 +68,22 @@ export const InviteController = {
         invitedby: inviterId,
         rideId,
       });
+
+      if (invitee.expoPushToken) {
+        console.log("Sending notification to:", invitee.expoPushToken);
+        try {
+          const notification = NotificationTemplates.RIDE_INVITE(ride.rideName);
+
+          await sendPushNotification(
+            invitee.expoPushToken,
+            notification.title,
+            notification.body,
+            { screen: 'notifications'}
+          );
+        } catch (error) {
+          console.error("Error sending notification:", error);
+        }
+      }
 
       return res.status(201).json({
         success: true,
@@ -84,21 +102,21 @@ export const InviteController = {
     // gettig the id from the auth middleware
     const userId = req.user._id;
     const user = await User.findById(userId);
-    if(!user){
-        return res.status(404).json({
-            success: false,
-            message: 'User not found'
-        });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
     }
-    
+
     // find pending invites for the user
     const invites = await Invite.find({
-        inviteeEmail: user.email,
-        status: "pending",
+      inviteeEmail: user.email,
+      status: "pending",
     })
-    .populate('invitedby', 'displayName email')
-    .populate('rideId', 'rideName rideDate');
-    
+      .populate("invitedby", "displayName email")
+      .populate("rideId", "rideName rideDate");
+
     // .find always returns an array like [] for null or some data[]
     if (invites.length === 0) {
       return res.status(404).json({
@@ -114,19 +132,19 @@ export const InviteController = {
     });
   },
 
-  async acceptInvite(req, res){
-    const {inviteId} = req.params;
+  async acceptInvite(req, res) {
+    const { inviteId } = req.params;
     const invite = await Invite.findById(inviteId);
-    if(!invite){
-        return res.status(404).json({
-            success: "false",
-            message: "No any pending invite found with this id"
-        })
+    if (!invite) {
+      return res.status(404).json({
+        success: "false",
+        message: "No any pending invite found with this id",
+      });
     }
-    if(invite.status !== 'pending'){
-        return res.status(400).json({
-            message: "Invite already responded!"
-        })
+    if (invite.status !== "pending") {
+      return res.status(400).json({
+        message: "Invite already responded!",
+      });
     }
     // Mark invite as accepted
     invite.status = "accepted";
@@ -134,39 +152,59 @@ export const InviteController = {
 
     // Add user to the ride riders
     const ride = await Ride.findById(invite.rideId);
-    if(!ride){
-        return res.status(404).json({
-            success: 'false',
-            message: 'No any ride found for this id'
-        })
+    if (!ride) {
+      return res.status(404).json({
+        success: "false",
+        message: "No any ride found for this id",
+      });
     }
     const invitee = await User.findById(invite.inviteeId);
-       if(!invitee){
-        return res.status(404).json({
-            success: 'false',
-            message: 'No any invitee found for this id'
-        })
+    if (!invitee) {
+      return res.status(404).json({
+        success: "false",
+        message: "No any invitee found for this id",
+      });
     }
-    ride.riders.push({user: invitee});
+    ride.riders.push({ user: invitee });
     await ride.save();
 
-    res.json({success: true, message: "Invite accepted", invite})
+      // ✅ NEW: Notify the inviter that their invite was accepted
+  // const inviter = invite.invitedby; // Already populated
+  // if (inviter && inviter.expoPushToken) {
+  //   try {
+  //     console.log('Accepting!!')
+  //     await sendPushNotification(
+  //       inviter.expoPushToken,
+  //       'Invite Accepted!',
+  //       `${invitee.displayName || invitee.email} accepted your ride invitation`,
+  //       { 
+  //         rideId: ride._id, 
+  //         inviteId: invite._id, 
+  //         type: 'invite_accepted',
+  //         acceptedBy: invitee._id
+  //       }
+  //     );
+  //   } catch (error) {
+  //     console.error('Error notifying inviter:', error);
+  //   }
+  // }
 
+    res.json({ success: true, message: "Invite accepted", invite });
   },
 
-    async rejectInvite(req, res){
-    const {inviteId} = req.params;
+  async rejectInvite(req, res) {
+    const { inviteId } = req.params;
     const invite = await Invite.findById(inviteId);
-    if(!invite){
-        return res.status(404).json({
-            success: "false",
-            message: "No any pending invite found with this id"
-        })
+    if (!invite) {
+      return res.status(404).json({
+        success: "false",
+        message: "No any pending invite found with this id",
+      });
     }
-    if(invite.status !== 'pending'){
-        return res.status(400).json({
-            message: "Invite already responded!"
-        })
+    if (invite.status !== "pending") {
+      return res.status(400).json({
+        message: "Invite already responded!",
+      });
     }
     // Mark invite as accepted
     invite.status = "rejected";
@@ -174,23 +212,22 @@ export const InviteController = {
 
     // Add user to the ride riders
     const ride = await Ride.findById(invite.rideId);
-    if(!ride){
-        return res.status(404).json({
-            success: 'false',
-            message: 'No any ride found for this id'
-        })
+    if (!ride) {
+      return res.status(404).json({
+        success: "false",
+        message: "No any ride found for this id",
+      });
     }
     const invitee = await User.findById(invite.inviteeId);
-       if(!invitee){
-        return res.status(404).json({
-            success: 'false',
-            message: 'No any invitee found for this id'
-        })
+    if (!invitee) {
+      return res.status(404).json({
+        success: "false",
+        message: "No any invitee found for this id",
+      });
     }
-    ride.riders.push({user: invitee});
-    await ride.save();
+    // ride.riders.push({ user: invitee });
+    // await ride.save();
 
-    res.json({success: true, message: "Invite rejected", invite})
-
-  }
+    res.json({ success: true, message: "Invite rejected", invite });
+  },
 };
