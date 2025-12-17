@@ -7,6 +7,7 @@ import { NotificationTemplates } from "../../utils/notificationTemplates.js";
 export const InviteController = {
   async inviteUser(req, res) {
     const { inviteeEmail, rideId } = req.body;
+    console.log("Inviting user:", inviteeEmail, "to ride:", rideId);
     const inviterId = req.user._id;
 
     if (!inviteeEmail || !rideId) {

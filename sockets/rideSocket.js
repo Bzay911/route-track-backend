@@ -73,16 +73,19 @@ export default function setupRideSockets(io) {
     });
 
     // on user location update
-    socket.on("userLocationUpdate", ({ rideId, userId, lat, lon }) => {
+    socket.on("userLocationUpdate", async ({ rideId, userId, lat, lon }) => {
       console.log("Received location update on backend:", {
         rideId,
         userId,
         lat,
         lon,
       });
+      const user = await User.findById(userId);
+      const displayName = user.displayName
       // Broadcast location to everyone else in the ride room
       socket.to(rideId).emit("updateRiderLocation", {
         userId,
+        displayName, // check this
         lat,
         lon,
       });
